@@ -1,0 +1,70 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+venv/
+.venv/
+env/
+ENV/
+.env
+.env.*
+
+# Machine Learning generated files
+Backend/data/
+Backend/saved_models/
+mlruns/
+wandb/
+runs/
+outputs/
+artifacts/
+.ipynb_checkpoints/
+
+# IDE / Editor
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# OS files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+*~
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+
+# Secrets
+*.pem
+*.key
+secrets.json
+credentials.json
+
+# Frontend dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Testing / coverage
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+.nox/
+coverage.xml
+
+# Cache
+.cache/
