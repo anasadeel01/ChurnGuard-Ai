@@ -290,72 +290,97 @@ class ChartManager {
     }
 
     createConfusionMatrix(canvasId, data) {
-        const ctx = document.getElementById(canvasId);
-        if (!ctx) return;
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return;
 
-        if (this.charts[canvasId]) {
+        // Destroy existing chart if one already exists
+        if (this.charts && this.charts[canvasId]) {
             this.charts[canvasId].destroy();
         }
 
         // Find best model's confusion matrix
         let cm = null;
-        for (const [name, metrics] of Object.entries(data)) {
-            if (metrics.confusion_matrix) {
-                cm = metrics.confusion_matrix;
-                break;
+
+        if (data && typeof data === 'object') {
+            // Normal API response: data.results
+            const results = data.results || {};
+
+            // Prefer the declared best model
+            const bestModel = data.best_model;
+
+            if (bestModel && results[bestModel]?.confusion_matrix) {
+                cm = results[bestModel].confusion_matrix;
+            }
+
+            // Fallback: search any model containing a confusion matrix
+            if (!cm) {
+                for (const modelName in results) {
+                    if (results[modelName]?.confusion_matrix) {
+                        cm = results[modelName].confusion_matrix;
+                        break;
+                    }
+                }
+            }
+
+            // Also support data already being the results object
+            if (!cm) {
+                for (const modelName in data) {
+                    if (data[modelName]?.confusion_matrix) {
+                        cm = data[modelName].confusion_matrix;
+                        break;
+                    }
+                }
             }
         }
 
-        if (!cm) return;
+        if (!cm || !Array.isArray(cm) || cm.length !== 2) {
+            console.error('Confusion matrix data not found:', data);
+            return;
+        }
 
-        const tn = cm[0][0], fp = cm[0][1], fn = cm[1][0], tp = cm[1][1];
+        const values = [
+            cm[0][0],
+            cm[0][1],
+            cm[1][0],
+            cm[1][1]
+        ];
 
-        this.charts[canvasId] = new Chart(ctx, {
+        this.charts[canvasId] = new Chart(canvas, {
             type: 'bar',
             data: {
-                labels: ['True Negative', 'False Positive', 'False Negative', 'True Positive'],
+                labels: [
+                    'True Negative',
+                    'False Positive',
+                    'False Negative',
+                    'True Positive'
+                ],
                 datasets: [{
-                    label: 'Count',
-                    data: [tn, fp, fn, tp],
-                    backgroundColor: [
-                        'rgba(0, 230, 118, 0.6)',
-                        'rgba(255, 171, 0, 0.6)',
-                        'rgba(255, 109, 0, 0.6)',
-                        'rgba(0, 245, 255, 0.6)'
-                    ],
-                    borderColor: [
-                        'rgba(0, 230, 118, 1)',
-                        'rgba(255, 171, 0, 1)',
-                        'rgba(255, 109, 0, 1)',
-                        'rgba(0, 245, 255, 1)'
-                    ],
-                    borderWidth: 1,
-                    borderRadius: 6,
-                    barPercentage: 0.6
+                    label: 'Predictions',
+                    data: values
                 }]
             },
             options: {
-                ...this.defaultOptions,
+                responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
-                    ...this.defaultOptions.plugins,
-                    legend: { display: false },
-                    title: {
-                        display: true,
-                        text: `TN: ${tn} | FP: ${fp} | FN: ${fn} | TP: ${tp}`,
-                        color: 'rgba(255,255,255,0.5)',
-                        font: { size: 12, family: 'JetBrains Mono' }
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                return ` ${context.raw}`;
+                            }
+                        }
                     }
                 },
                 scales: {
-                    ...this.defaultOptions.scales,
                     y: {
-                        ...this.defaultOptions.scales.y,
-                        beginAtZero: true
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
                     }
-                },
-                animation: {
-                    duration: 1500,
-                    easing: 'easeOutBounce'
                 }
             }
         });
