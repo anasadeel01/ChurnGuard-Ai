@@ -1,0 +1,275 @@
+{
+  "best_model": "Stacking Ensemble",
+  "results": {
+    "Logistic Regression": {
+      "accuracy": 0.6435,
+      "precision": 0.6918001885014138,
+      "recall": 0.6553571428571429,
+      "f1": 0.6730857404860155,
+      "roc_auc": 0.7035683847402596,
+      "avg_precision": 0.7427056021116475,
+      "cv_roc_auc_mean": 0.7025170376486948,
+      "cv_roc_auc_std": 0.012683382415435996,
+      "confusion_matrix": [
+        [
+          553,
+          327
+        ],
+        [
+          386,
+          734
+        ]
+      ]
+    },
+    "Random Forest": {
+      "accuracy": 0.654,
+      "precision": 0.6777408637873754,
+      "recall": 0.7285714285714285,
+      "f1": 0.7022375215146299,
+      "roc_auc": 0.697265625,
+      "avg_precision": 0.731870427320918,
+      "cv_roc_auc_mean": 0.6914800812054334,
+      "cv_roc_auc_std": 0.003187828717326209,
+      "confusion_matrix": [
+        [
+          492,
+          388
+        ],
+        [
+          304,
+          816
+        ]
+      ]
+    },
+    "Gradient Boosting": {
+      "accuracy": 0.639,
+      "precision": 0.6617886178861788,
+      "recall": 0.7267857142857143,
+      "f1": 0.6927659574468085,
+      "roc_auc": 0.6820616883116883,
+      "avg_precision": 0.718340967946612,
+      "cv_roc_auc_mean": 0.6746597392447882,
+      "cv_roc_auc_std": 0.01004908514687211,
+      "confusion_matrix": [
+        [
+          464,
+          416
+        ],
+        [
+          306,
+          814
+        ]
+      ]
+    },
+    "XGBoost": {
+      "accuracy": 0.636,
+      "precision": 0.6785063752276868,
+      "recall": 0.6651785714285714,
+      "f1": 0.6717763751127142,
+      "roc_auc": 0.6820992288961039,
+      "avg_precision": 0.7226905343257819,
+      "cv_roc_auc_mean": 0.6816583757698682,
+      "cv_roc_auc_std": 0.011840915217936504,
+      "confusion_matrix": [
+        [
+          527,
+          353
+        ],
+        [
+          375,
+          745
+        ]
+      ]
+    },
+    "LightGBM": {
+      "accuracy": 0.6395,
+      "precision": 0.6845513413506013,
+      "recall": 0.6607142857142857,
+      "f1": 0.6724216265333939,
+      "roc_auc": 0.6854028003246754,
+      "avg_precision": 0.7265633297734146,
+      "cv_roc_auc_mean": 0.6796103951318738,
+      "cv_roc_auc_std": 0.009947841281701016,
+      "confusion_matrix": [
+        [
+          539,
+          341
+        ],
+        [
+          380,
+          740
+        ]
+      ]
+    },
+    "Stacking Ensemble": {
+      "accuracy": 0.651,
+      "precision": 0.6653605015673981,
+      "recall": 0.7580357142857143,
+      "f1": 0.7086811352253756,
+      "roc_auc": 0.697104301948052,
+      "avg_precision": 0.734829096811701,
+      "confusion_matrix": [
+        [
+          453,
+          427
+        ],
+        [
+          271,
+          849
+        ]
+      ]
+    }
+  },
+  "feature_importance": [
+    {
+      "feature": "satisfaction_score",
+      "shap_importance": 0.28634804487228394
+    },
+    {
+      "feature": "discount_pct",
+      "shap_importance": 0.2486220896244049
+    },
+    {
+      "feature": "contract_type",
+      "shap_importance": 0.22139054536819458
+    },
+    {
+      "feature": "loyalty_score",
+      "shap_importance": 0.18407626450061798
+    },
+    {
+      "feature": "monthly_charges",
+      "shap_importance": 0.160712331533432
+    },
+    {
+      "feature": "support_per_tenure",
+      "shap_importance": 0.1496686339378357
+    },
+    {
+      "feature": "inactivity_score",
+      "shap_importance": 0.1388302743434906
+    },
+    {
+      "feature": "feature_usage_rate",
+      "shap_importance": 0.1349583864212036
+    },
+    {
+      "feature": "nps_score",
+      "shap_importance": 0.11879169195890427
+    },
+    {
+      "feature": "avg_session_duration_min",
+      "shap_importance": 0.11231520026922226
+    },
+    {
+      "feature": "payment_method",
+      "shap_importance": 0.10015309602022171
+    },
+    {
+      "feature": "payment_risk",
+      "shap_importance": 0.09726136177778244
+    },
+    {
+      "feature": "engagement_score",
+      "shap_importance": 0.09212443977594376
+    },
+    {
+      "feature": "satisfaction_nps_ratio",
+      "shap_importance": 0.07003003358840942
+    },
+    {
+      "feature": "total_charge_ratio",
+      "shap_importance": 0.06790780276060104
+    },
+    {
+      "feature": "charge_per_tenure",
+      "shap_importance": 0.06391607969999313
+    },
+    {
+      "feature": "days_since_last_interaction",
+      "shap_importance": 0.05727522075176239
+    },
+    {
+      "feature": "tenure_months",
+      "shap_importance": 0.05348571762442589
+    },
+    {
+      "feature": "total_charges",
+      "shap_importance": 0.04930099472403526
+    },
+    {
+      "feature": "age",
+      "shap_importance": 0.04921871796250343
+    }
+  ],
+  "training_date": "2026-09-12T18:00:31.229941",
+  "num_features": 30,
+  "feature_names": [
+    "age",
+    "tenure_months",
+    "monthly_charges",
+    "total_charges",
+    "num_products",
+    "num_support_tickets",
+    "days_since_last_interaction",
+    "avg_session_duration_min",
+    "login_frequency_monthly",
+    "feature_usage_rate",
+    "payment_delays",
+    "satisfaction_score",
+    "nps_score",
+    "referral_count",
+    "discount_pct",
+    "charge_per_tenure",
+    "total_charge_ratio",
+    "support_per_tenure",
+    "engagement_score",
+    "clv_proxy",
+    "satisfaction_nps_ratio",
+    "inactivity_score",
+    "payment_risk",
+    "loyalty_score",
+    "gender",
+    "contract_type",
+    "payment_method",
+    "tenure_group",
+    "has_partner",
+    "has_dependents"
+  ],
+  "numerical_features": [
+    "age",
+    "tenure_months",
+    "monthly_charges",
+    "total_charges",
+    "num_products",
+    "num_support_tickets",
+    "days_since_last_interaction",
+    "avg_session_duration_min",
+    "login_frequency_monthly",
+    "feature_usage_rate",
+    "payment_delays",
+    "satisfaction_score",
+    "nps_score",
+    "referral_count",
+    "discount_pct",
+    "charge_per_tenure",
+    "total_charge_ratio",
+    "support_per_tenure",
+    "engagement_score",
+    "clv_proxy",
+    "satisfaction_nps_ratio",
+    "inactivity_score",
+    "payment_risk",
+    "loyalty_score"
+  ],
+  "categorical_features": [
+    "gender",
+    "contract_type",
+    "payment_method",
+    "tenure_group"
+  ],
+  "binary_features": [
+    "has_partner",
+    "has_dependents"
+  ]
+}
