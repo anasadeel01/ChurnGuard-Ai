@@ -51,33 +51,55 @@ model_results = None
 # ============================================================
 
 def load_artifacts():
-    """Load all saved model artifacts"""
+    """Load all saved model artifacts."""
 
-    global model, scaler, label_encoders, feature_names, model_results
+    global model
+    global scaler
+    global label_encoders
+    global feature_names
+    global model_results
 
     try:
+
         model = joblib.load(
-            os.path.join(MODEL_DIR, 'best_model.pkl')
+            os.path.join(
+                MODEL_DIR,
+                'best_model.pkl'
+            )
         )
 
         scaler = joblib.load(
-            os.path.join(MODEL_DIR, 'scaler.pkl')
+            os.path.join(
+                MODEL_DIR,
+                'scaler.pkl'
+            )
         )
 
         label_encoders = joblib.load(
-            os.path.join(MODEL_DIR, 'label_encoders.pkl')
+            os.path.join(
+                MODEL_DIR,
+                'label_encoders.pkl'
+            )
         )
 
         with open(
-            os.path.join(MODEL_DIR, 'feature_names.json'),
+            os.path.join(
+                MODEL_DIR,
+                'feature_names.json'
+            ),
             'r'
         ) as f:
+
             feature_names = json.load(f)
 
         with open(
-            os.path.join(MODEL_DIR, 'model_results.json'),
+            os.path.join(
+                MODEL_DIR,
+                'model_results.json'
+            ),
             'r'
         ) as f:
+
             model_results = json.load(f)
 
         print("✓ All model artifacts loaded successfully!")
@@ -87,9 +109,23 @@ def load_artifacts():
     except Exception as e:
 
         print(f"✗ Error loading artifacts: {e}")
-        print("  Run the training pipeline first!")
 
         return False
+
+
+# ============================================================
+# LOAD ARTIFACTS FOR API
+# ============================================================
+
+# Load the trained model when the application starts.
+#
+# IMPORTANT:
+# We do NOT import churn_model.py here.
+# churn_model.py contains training-only dependencies such as
+# SHAP and imbalanced-learn, which are not needed by production.
+#
+# This keeps the Vercel deployment lightweight.
+load_artifacts()
 
 
 # ============================================================
@@ -97,7 +133,7 @@ def load_artifacts():
 # ============================================================
 
 def engineer_features(data):
-    """Apply the same feature engineering as training"""
+    """Apply the same feature engineering as training."""
 
     df = data.copy()
 
@@ -108,7 +144,11 @@ def engineer_features(data):
 
     df['total_charge_ratio'] = (
         df['total_charges'] /
-        (df['monthly_charges'] * df['tenure_months'] + 1)
+        (
+            df['monthly_charges'] *
+            df['tenure_months'] +
+            1
+        )
     )
 
     df['support_per_tenure'] = (
@@ -122,21 +162,26 @@ def engineer_features(data):
         df['feature_usage_rate'] * 0.4
     )
 
-    tenure = df['tenure_months'].values[0]
+    tenure = df['tenure_months'].iloc[0]
 
     if tenure <= 6:
+
         tenure_group = '0-6m'
 
     elif tenure <= 12:
+
         tenure_group = '6-12m'
 
     elif tenure <= 24:
+
         tenure_group = '1-2y'
 
     elif tenure <= 48:
+
         tenure_group = '2-4y'
 
     else:
+
         tenure_group = '4y+'
 
     df['tenure_group'] = tenure_group
@@ -144,7 +189,11 @@ def engineer_features(data):
     df['clv_proxy'] = (
         df['monthly_charges'] *
         df['tenure_months'] *
-        (1 - df['discount_pct'] / 100)
+        (
+            1 -
+            df['discount_pct'] /
+            100
+        )
     )
 
     df['satisfaction_nps_ratio'] = (
@@ -154,7 +203,10 @@ def engineer_features(data):
 
     df['inactivity_score'] = (
         df['days_since_last_interaction'] /
-        (df['login_frequency_monthly'] + 1)
+        (
+            df['login_frequency_monthly'] +
+            1
+        )
     )
 
     df['payment_risk'] = (
@@ -179,6 +231,7 @@ def engineer_features(data):
 
 @app.route('/')
 def serve_frontend():
+    """Serve the frontend application."""
 
     return send_from_directory(
         app.static_folder,
@@ -192,15 +245,32 @@ def serve_frontend():
 
 @app.route('/api/predict', methods=['POST'])
 def predict():
-    """Make churn prediction for a customer"""
+    """Make churn prediction for a customer."""
 
     try:
 
-        data = request.json
+        if model is None:
+            return jsonify({
+                'success': False,
+                'error': 'Model artifacts are not loaded.'
+            }), 500
+
+        data = request.get_json(silent=True)
+
+        if not isinstance(data, dict):
+            return jsonify({
+                'success': False,
+                'error': 'Request body must be a JSON object.'
+            }), 400
 
         input_data = pd.DataFrame([{
 
-            'age': int(data.get('age', 35)),
+            'age': int(
+                data.get(
+                    'age',
+                    35
+                )
+            ),
 
             'gender': data.get(
                 'gender',
@@ -331,10 +401,18 @@ def predict():
 
         }])
 
+        # ----------------------------------------------------
         # Feature engineering
-        input_data = engineer_features(input_data)
+        # ----------------------------------------------------
 
+        input_data = engineer_features(
+            input_data
+        )
+
+        # ----------------------------------------------------
         # Encode categorical features
+        # ----------------------------------------------------
+
         cat_features = [
             'gender',
             'contract_type',
@@ -350,14 +428,21 @@ def predict():
 
                     input_data[col] = (
                         label_encoders[col]
-                        .transform(input_data[col])
+                        .transform(
+                            input_data[col]
+                        )
                     )
 
                 except ValueError:
 
+                    # Unknown categorical value.
+                    # Preserve existing production behavior.
                     input_data[col] = 0
 
+        # ----------------------------------------------------
         # Select and order features
+        # ----------------------------------------------------
+
         X = input_data[
             feature_names
         ].copy()
@@ -373,13 +458,19 @@ def predict():
             inplace=True
         )
 
+        # ----------------------------------------------------
         # Scale
+        # ----------------------------------------------------
+
         X_scaled = pd.DataFrame(
             scaler.transform(X),
             columns=feature_names
         )
 
+        # ----------------------------------------------------
         # Prediction
+        # ----------------------------------------------------
+
         churn_probability = float(
             model.predict_proba(
                 X_scaled
@@ -390,7 +481,10 @@ def predict():
             churn_probability >= 0.5
         )
 
+        # ----------------------------------------------------
         # Risk level
+        # ----------------------------------------------------
+
         if churn_probability < 0.3:
 
             risk_level = 'Low'
@@ -411,16 +505,26 @@ def predict():
             risk_level = 'Critical'
             risk_color = '#ff1744'
 
+        # ----------------------------------------------------
         # Recommendations
+        # ----------------------------------------------------
+
         recommendations = generate_recommendations(
             data,
             churn_probability
         )
 
+        # ----------------------------------------------------
         # Risk factors
+        # ----------------------------------------------------
+
         risk_factors = get_risk_factors(
             data
         )
+
+        # ----------------------------------------------------
+        # Response
+        # ----------------------------------------------------
 
         return jsonify({
 
@@ -443,7 +547,10 @@ def predict():
                     risk_color,
 
                 'confidence': round(
-                    abs(churn_probability - 0.5) * 2,
+                    abs(
+                        churn_probability -
+                        0.5
+                    ) * 2,
                     4
                 )
 
@@ -473,11 +580,13 @@ def generate_recommendations(
     data,
     churn_prob
 ):
-    """Generate actionable recommendations"""
+    """Generate actionable recommendations."""
 
     recs = []
 
-    if data.get('contract_type') == 'Month-to-Month':
+    if data.get(
+        'contract_type'
+    ) == 'Month-to-Month':
 
         recs.append({
             'icon': '📋',
@@ -601,7 +710,7 @@ def generate_recommendations(
 # ============================================================
 
 def get_risk_factors(data):
-    """Identify key risk factors"""
+    """Identify key risk factors."""
 
     factors = []
 
@@ -695,7 +804,9 @@ def get_risk_factors(data):
 
             try:
 
-                if check_fn(data[field]):
+                if check_fn(
+                    data[field]
+                ):
 
                     factors.append({
                         'factor': desc,
@@ -721,11 +832,22 @@ def get_risk_factors(data):
 # MODEL INFORMATION
 # ============================================================
 
-@app.route('/api/model-info', methods=['GET'])
+@app.route(
+    '/api/model-info',
+    methods=['GET']
+)
 def model_info():
-    """Return model information and metrics"""
+    """Return model information and metrics."""
 
     try:
+
+        if model_results is None:
+
+            return jsonify({
+                'success': False,
+                'error':
+                    'Model information is not available.'
+            }), 500
 
         return jsonify({
 
@@ -775,20 +897,56 @@ def model_info():
 # BATCH PREDICTION
 # ============================================================
 
-@app.route('/api/batch-predict', methods=['POST'])
+@app.route(
+    '/api/batch-predict',
+    methods=['POST']
+)
 def batch_predict():
-    """Predict churn for multiple customers"""
+    """Predict churn for multiple customers."""
 
     try:
 
-        customers = request.json.get(
+        request_data = request.get_json(
+            silent=True
+        )
+
+        if not isinstance(
+            request_data,
+            dict
+        ):
+
+            return jsonify({
+                'success': False,
+                'error':
+                    'Request body must be a JSON object.'
+            }), 400
+
+        customers = request_data.get(
             'customers',
             []
         )
 
+        if not isinstance(
+            customers,
+            list
+        ):
+
+            return jsonify({
+                'success': False,
+                'error':
+                    '"customers" must be a list.'
+            }), 400
+
         results = []
 
         for customer in customers:
+
+            if not isinstance(
+                customer,
+                dict
+            ):
+
+                continue
 
             with app.test_request_context(
                 json=customer
@@ -796,15 +954,19 @@ def batch_predict():
 
                 response = predict()
 
+                if isinstance(
+                    response,
+                    tuple
+                ):
+
+                    response_object = response[0]
+
+                else:
+
+                    response_object = response
+
                 result_data = (
-                    response.get_json()
-                    if hasattr(
-                        response,
-                        'get_json'
-                    )
-                    else json.loads(
-                        response[0].data
-                    )
+                    response_object.get_json()
                 )
 
                 results.append({
@@ -823,8 +985,11 @@ def batch_predict():
                 })
 
         return jsonify({
+
             'success': True,
+
             'results': results
+
         })
 
     except Exception as e:
@@ -839,11 +1004,22 @@ def batch_predict():
 # DASHBOARD STATISTICS
 # ============================================================
 
-@app.route('/api/dashboard-stats', methods=['GET'])
+@app.route(
+    '/api/dashboard-stats',
+    methods=['GET']
+)
 def dashboard_stats():
-    """Return dashboard statistics"""
+    """Return dashboard statistics."""
 
     try:
+
+        if model_results is None:
+
+            return jsonify({
+                'success': False,
+                'error':
+                    'Model information is not available.'
+            }), 500
 
         stats = {
 
@@ -876,7 +1052,8 @@ def dashboard_stats():
 
             stats['models_comparison'].append({
 
-                'name': name,
+                'name':
+                    name,
 
                 'accuracy':
                     metrics.get(
@@ -925,8 +1102,11 @@ def dashboard_stats():
                 )
 
         return jsonify({
+
             'success': True,
+
             'stats': stats
+
         })
 
     except Exception as e:
@@ -938,12 +1118,15 @@ def dashboard_stats():
 
 
 # ============================================================
-# START SERVER
+# LOCAL DEVELOPMENT / TRAINING
 # ============================================================
 
 if __name__ == '__main__':
 
+    # --------------------------------------------------------
     # Check if trained model exists
+    # --------------------------------------------------------
+
     if not os.path.exists(
         os.path.join(
             MODEL_DIR,
@@ -956,14 +1139,19 @@ if __name__ == '__main__':
             "Running training pipeline..."
         )
 
+        # ----------------------------------------------------
         # Generate data if needed
+        # ----------------------------------------------------
+
         data_file = os.path.join(
             BASE_DIR,
             'data',
             'customer_churn_data.csv'
         )
 
-        if not os.path.exists(data_file):
+        if not os.path.exists(
+            data_file
+        ):
 
             print(
                 "Generating synthetic data..."
@@ -977,7 +1165,10 @@ if __name__ == '__main__':
                 n_samples=10000
             )
 
-        # Train model
+        # ----------------------------------------------------
+        # Import training pipeline ONLY when running locally
+        # ----------------------------------------------------
+
         from churn_model import (
             ChurnModelPipeline
         )
@@ -988,23 +1179,28 @@ if __name__ == '__main__':
 
         pipeline.run_full_pipeline()
 
-    # Load artifacts
-    if load_artifacts():
+        # ----------------------------------------------------
+        # Reload newly created artifacts
+        # ----------------------------------------------------
 
-        print(
-            "\n🚀 Starting Flask API server..."
-        )
+        if not load_artifacts():
 
-        app.run(
-            debug=True,
-            host='0.0.0.0',
-            port=5000
-        )
+            print(
+                "Failed to load newly trained model artifacts."
+            )
 
-    else:
+            sys.exit(1)
 
-        print(
-            "Failed to load model artifacts. Exiting."
-        )
+    # --------------------------------------------------------
+    # Start Flask server
+    # --------------------------------------------------------
 
-        sys.exit(1)
+    print(
+        "\n🚀 Starting Flask API server..."
+    )
+
+    app.run(
+        debug=True,
+        host='0.0.0.0',
+        port=5000
+    )
