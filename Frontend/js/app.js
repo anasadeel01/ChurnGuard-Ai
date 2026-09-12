@@ -116,6 +116,7 @@ function loadDemoData() {
     const demoModels = [
         { name: 'Logistic Regression', accuracy: 0.76, precision: 0.69, recall: 0.68, f1: 0.685, roc_auc: 0.82 },
         { name: 'Random Forest', accuracy: 0.82, precision: 0.75, recall: 0.74, f1: 0.745, roc_auc: 0.88 },
+        { name: 'Gradient Boosting', accuracy: 0.80, precision: 0.74, recall: 0.73, f1: 0.735, roc_auc: 0.86 },
         { name: 'XGBoost', accuracy: 0.84, precision: 0.78, recall: 0.76, f1: 0.77, roc_auc: 0.90 },
         { name: 'LightGBM', accuracy: 0.83, precision: 0.77, recall: 0.75, f1: 0.76, roc_auc: 0.89 },
         { name: 'Stacking Ensemble', accuracy: 0.85, precision: 0.79, recall: 0.77, f1: 0.78, roc_auc: 0.91 },
@@ -137,7 +138,7 @@ function loadDemoData() {
     updateKPIs({
         best_auc: 0.91,
         best_f1: 0.78,
-        total_models_trained: 6,
+        total_models_trained: demoModels.length,
         models_comparison: demoModels
     });
 
