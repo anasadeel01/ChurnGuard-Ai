@@ -3,7 +3,7 @@
  * Handles navigation, API calls, and UI interactions
  */
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = '/api';
 
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', () => {
