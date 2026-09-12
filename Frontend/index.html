@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChurnGuard AI - Customer Churn Prediction</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- GSAP for animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+</head>
+<body>
+    <!-- 3D Background Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="loader-container">
+            <div class="loader-ring">
+                <div class="loader-ring-inner"></div>
+            </div>
+            <div class="loader-text">
+                <span class="loader-title">ChurnGuard AI</span>
+                <span class="loader-subtitle">Initializing Neural Networks...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <div class="brand-icon">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <circle cx="16" cy="16" r="14" stroke="url(#gradient)" stroke-width="2.5" />
+                    <path d="M10 16L14 20L22 12" stroke="url(#gradient)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                    <defs>
+                        <linearGradient id="gradient" x1="0" y1="0" x2="32" y2="32">
+                            <stop stop-color="#00f5ff" />
+                            <stop offset="1" stop-color="#7c3aed" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+            <span class="brand-name">ChurnGuard<span class="brand-ai">AI</span></span>
+        </div>
+        <div class="nav-links">
+            <a href="#dashboard" class="nav-link active" data-section="dashboard">
+                <span class="nav-icon">📊</span> Dashboard
+            </a>
+            <a href="#predict" class="nav-link" data-section="predict">
+                <span class="nav-icon">🔮</span> Predict
+            </a>
+            <a href="#analytics" class="nav-link" data-section="analytics">
+                <span class="nav-icon">📈</span> Analytics
+            </a>
+            <a href="#models" class="nav-link" data-section="models">
+                <span class="nav-icon">🧠</span> Models
+            </a>
+        </div>
+        <div class="nav-status">
+            <div class="status-dot"></div>
+            <span>Model Active</span>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- ============ DASHBOARD SECTION ============ -->
+        <section id="dashboard" class="section active">
+            <div class="section-header">
+                <h1 class="section-title">
+                    <span class="title-gradient">Intelligence Dashboard</span>
+                </h1>
+                <p class="section-subtitle">Real-time customer churn analytics powered by machine learning</p>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="kpi-grid">
+                <div class="kpi-card" data-animate="fade-up" data-delay="0">
+                    <div class="kpi-icon kpi-icon-blue">
+                        <span>🎯</span>
+                    </div>
+                    <div class="kpi-content">
+                        <span class="kpi-value" id="kpi-accuracy">--</span>
+                        <span class="kpi-label">Model Accuracy</span>
+                    </div>
+                    <div class="kpi-trend positive">
+                        <span>↑ 2.3%</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card" data-animate="fade-up" data-delay="100">
+                    <div class="kpi-icon kpi-icon-purple">
+                        <span>📊</span>
+                    </div>
+                    <div class="kpi-content">
+                        <span class="kpi-value" id="kpi-auc">--</span>
+                        <span class="kpi-label">ROC-AUC Score</span>
+                    </div>
+                    <div class="kpi-trend positive">
+                        <span>↑ 1.8%</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card" data-animate="fade-up" data-delay="200">
+                    <div class="kpi-icon kpi-icon-cyan">
+                        <span>⚡</span>
+                    </div>
+                    <div class="kpi-content">
+                        <span class="kpi-value" id="kpi-f1">--</span>
+                        <span class="kpi-label">F1 Score</span>
+                    </div>
+                    <div class="kpi-trend positive">
+                        <span>↑ 3.1%</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card" data-animate="fade-up" data-delay="300">
+                    <div class="kpi-icon kpi-icon-green">
+                        <span>🧠</span>
+                    </div>
+                    <div class="kpi-content">
+                        <span class="kpi-value" id="kpi-models">--</span>
+                        <span class="kpi-label">Models Trained</span>
+                    </div>
+                    <div class="kpi-trend neutral">
+                        <span>Ensemble</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="charts-grid">
+                <div class="chart-card large" data-animate="fade-up">
+                    <div class="chart-header">
+                        <h3>Model Performance Comparison</h3>
+                        <div class="chart-legend" id="perf-legend"></div>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card" data-animate="fade-up">
+                    <div class="chart-header">
+                        <h3>Feature Importance</h3>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="featureChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ PREDICT SECTION ============ -->
+        <section id="predict" class="section">
+            <div class="section-header">
+                <h1 class="section-title">
+                    <span class="title-gradient">Churn Prediction Engine</span>
+                </h1>
+                <p class="section-subtitle">Enter customer details for real-time churn probability analysis</p>
+            </div>
+
+            <div class="predict-container">
+                <!-- Input Form -->
+                <div class="predict-form-wrapper" data-animate="fade-right">
+                    <div class="form-card">
+                        <div class="form-section">
+                            <h3 class="form-section-title">
+                                <span class="section-icon">👤</span> Demographics
+                            </h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Age</label>
+                                    <input type="number" id="inp-age" value="35" min="18" max="100" class="form-input">
+                                </div>
+                                <div class="form-group">
+                                    <label>Gender</label>
+                                    <select id="inp-gender" class="form-input">
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Has Partner</label>
+                                    <select id="inp-partner" class="form-input">
+                                        <option value="1">Yes</option>
+                                        <option value="0">No</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Has Dependents</label>
+                                    <select id="inp-dependents" class="form-input">
+                                        <option value="0">No</option>
+                                        <option value="1">Yes</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3 class="form-section-title">
+                                <span class="section-icon">📋</span> Account Information
+                            </h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Tenure (months)</label>
+                                    <input type="number" id="inp-tenure" value="12" min="1" max="120" class="form-input">
+                                </div>
+                                <div class="form-group">
+                                    <label>Contract Type</label>
+                                    <select id="inp-contract" class="form-input">
+                                        <option value="Month-to-Month">Month-to-Month</option>
+                                        <option value="One-Year">One Year</option>
+                                        <option value="Two-Year">Two Year</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Monthly Charges ($)</label>
+                                    <input type="number" id="inp-monthly" value="65" min="15" max="200" step="0.01" class="form-input">
+                                </div>
+                                <div class="form-group">
+                                    <label>Total Charges ($)</label>
+                                    <input type="number" id="inp-total" value="780" min="0" step="0.01" class="form-input">
+                                </div>
+                                <div class="form-group">
+                                    <label>Num Products</label>
+                                    <input type="number" id="inp-products" value="2" min="1" max="10" class="form-input">
+                                </div>
+                                <div class="form-group">
+                                    <label>Payment Method</label>
+                                    <select id="inp-payment" class="form-input">
+                                        <option value="Credit Card">Credit Card</option>
+                                        <option value="Bank Transfer">Bank Transfer</option>
+                                        <option value="Electronic Check">Electronic Check</option>
+                                        <option value="Mailed Check">Mailed Check</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Payment Delays</label>
+                                    <input type="number" id="inp-delays" value="0" min="0" max="12" class="form-input">
+                                </div>
+                                <div class="form-group">
+                                    <label>Discount (%)</label>
+                                    <input type="number" id="inp-discount" value="5" min="0" max="50" step="0.1" class="form-input">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3 class="form-section-title">
+                                <span class="section-icon">📊</span> Engagement Metrics
+                            </h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Support Tickets</label>
+                                    <input type="number" id="inp-tickets" value="1" min="0" max="20" class="form-input">
+                                </div>
+                                <div class="form-group">
+                                    <label>Days Since Last Activity</label>
+                                    <input type="number" id="inp-inactive" value="15" min="0" max="365" class="form-input">
+                                </div>
+                                <div class="form-group">
+                                    <label>Avg Session (min)</label>
+                                    <input type="number" id="inp-session" value="20" min="0" max="120" step="0.1" class="form-input">
+                                </div>
+                                <div class="form-group">
+                                    <label>Login Freq (monthly)</label>
+                                    <input type="number" id="inp-login" value="10" min="0" max="60" class="form-input">
+                                </div>
+                                <div class="form-group">
+                                    <label>Feature Usage (%)</label>
+                                    <input type="range" id="inp-usage" value="45" min="0" max="100" class="form-slider">
+                                    <span class="slider-value" id="usage-value">45%</span>
+                                </div>
+                                <div class="form-group">
+                                    <label>Satisfaction (1-5)</label>
+                                    <input type="range" id="inp-satisfaction" value="3.5" min="1" max="5" step="0.1" class="form-slider">
+                                    <span class="slider-value" id="satisfaction-value">3.5</span>
+                                </div>
+                                <div class="form-group">
+                                    <label>NPS Score (0-10)</label>
+                                    <input type="range" id="inp-nps" value="7" min="0" max="10" class="form-slider">
+                                    <span class="slider-value" id="nps-value">7</span>
+                                </div>
+                                <div class="form-group">
+                                    <label>Referrals Made</label>
+                                    <input type="number" id="inp-referrals" value="0" min="0" max="20" class="form-input">
+                                </div>
+                            </div>
+                        </div>
+
+                        <button id="predict-btn" class="btn-predict" onclick="makePrediction()">
+                            <span class="btn-icon">🔮</span>
+                            <span class="btn-text">Analyze Churn Risk</span>
+                            <div class="btn-shimmer"></div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Results Panel -->
+                <div class="predict-results-wrapper" data-animate="fade-left">
+                    <div class="results-card" id="results-card">
+                        <!-- Placeholder -->
+                        <div class="results-placeholder" id="results-placeholder">
+                            <div class="placeholder-icon">
+                                <svg width="120" height="120" viewBox="0 0 120 120">
+                                    <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(124,58,237,0.2)" stroke-width="2" stroke-dasharray="8 4" />
+                                    <circle cx="60" cy="60" r="35" fill="none" stroke="rgba(0,245,255,0.2)" stroke-width="2" stroke-dasharray="6 3" />
+                                    <circle cx="60" cy="60" r="20" fill="none" stroke="rgba(124,58,237,0.3)" stroke-width="2" />
+                                    <text x="60" y="65" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="24">?</text>
+                                </svg>
+                            </div>
+                            <p class="placeholder-text">Enter customer data and click<br><strong>"Analyze Churn Risk"</strong></p>
+                        </div>
+
+                        <!-- Actual Results (hidden initially) -->
+                        <div class="results-content" id="results-content" style="display:none;">
+                            <!-- Risk Gauge -->
+                            <div class="risk-gauge-container">
+                                <div class="risk-gauge">
+                                    <canvas id="gaugeCanvas" width="280" height="180"></canvas>
+                                    <div class="gauge-center">
+                                        <span class="gauge-value" id="gauge-value">0%</span>
+                                        <span class="gauge-label">Churn Risk</span>
+                                    </div>
+                                </div>
+                                <div class="risk-badge" id="risk-badge">
+                                    <span class="badge-text" id="risk-level-text">Low Risk</span>
+                                </div>
+                            </div>
+
+                            <!-- Risk Factors -->
+                            <div class="risk-factors" id="risk-factors">
+                                <h4>🔍 Key Risk Factors</h4>
+                                <div class="factors-list" id="factors-list"></div>
+                            </div>
+
+                            <!-- Recommendations -->
+                            <div class="recommendations" id="recommendations">
+                                <h4>💡 Recommended Actions</h4>
+                                <div class="recs-list" id="recs-list"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ ANALYTICS SECTION ============ -->
+        <section id="analytics" class="section">
+            <div class="section-header">
+                <h1 class="section-title">
+                    <span class="title-gradient">Deep Analytics</span>
+                </h1>
+                <p class="section-subtitle">Comprehensive model analysis and performance metrics</p>
+            </div>
+
+            <div class="analytics-grid">
+                <div class="chart-card" data-animate="fade-up">
+                    <div class="chart-header">
+                        <h3>📊 Metrics Radar</h3>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card" data-animate="fade-up">
+                    <div class="chart-header">
+                        <h3>📉 Confusion Matrix Analysis</h3>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="confusionChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card wide" data-animate="fade-up">
+                    <div class="chart-header">
+                        <h3>🏆 Model Leaderboard</h3>
+                    </div>
+                    <div class="chart-body">
+                        <div class="leaderboard" id="leaderboard"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ MODELS SECTION ============ -->
+        <section id="models" class="section">
+            <div class="section-header">
+                <h1 class="section-title">
+                    <span class="title-gradient">Model Architecture</span>
+                </h1>
+                <p class="section-subtitle">Explore the ML models powering ChurnGuard AI</p>
+            </div>
+
+            <div class="models-grid" id="models-grid">
+                <!-- Populated by JS -->
+            </div>
+
+            <div class="pipeline-visual">
+                <h3 class="pipeline-title">🔄 ML Pipeline</h3>
+                <div class="pipeline-steps">
+                    <div class="pipeline-step" data-animate="fade-up" data-delay="0">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h4>Data Collection</h4>
+                            <p>20+ customer features including demographics, usage, and engagement</p>
+                        </div>
+                    </div>
+                    <div class="pipeline-connector"></div>
+                    <div class="pipeline-step" data-animate="fade-up" data-delay="100">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h4>Feature Engineering</h4>
+                            <p>9 derived features: CLV proxy, engagement score, loyalty score, etc.</p>
+                        </div>
+                    </div>
+                    <div class="pipeline-connector"></div>
+                    <div class="pipeline-step" data-animate="fade-up" data-delay="200">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h4>Preprocessing</h4>
+                            <p>RobustScaler, SMOTE resampling, label encoding</p>
+                        </div>
+                    </div>
+                    <div class="pipeline-connector"></div>
+                    <div class="pipeline-step" data-animate="fade-up" data-delay="300">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h4>Model Training</h4>
+                            <p>5 models + stacking ensemble with 5-fold cross-validation</p>
+                        </div>
+                    </div>
+                    <div class="pipeline-connector"></div>
+                    <div class="pipeline-step" data-animate="fade-up" data-delay="400">
+                        <div class="step-number">5</div>
+                        <div class="step-content">
+                            <h4>Evaluation & Selection</h4>
+                            <p>ROC-AUC + F1 composite scoring, SHAP explainability</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <script src="js/three-scene.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
