@@ -25,6 +25,11 @@ Built with **Python, Flask, Scikit-learn, XGBoost, LightGBM, SHAP, JavaScript, C
 
 ---
 
+## ✨ Live Demo
+[churnguide-ai.netlify.app](https://churnguide-ai.netlify.app)
+
+---
+
 ## 🧩 System Architecture
 
 ```text
